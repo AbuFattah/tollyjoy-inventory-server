@@ -25,6 +25,13 @@ async function run() {
     await client.connect();
     const products = client.db("tollyjoyInventory").collection("inventory");
 
+    // get all products
+    app.get("/products", async (req, res) => {
+      const cursor = products.find({});
+      const fetchedProducts = await cursor.toArray();
+      res.send(fetchedProducts);
+    });
+
     app.get("/featuredProducts", async (req, res) => {
       const query = { featured: true };
       const cursor = products.find(query);
@@ -67,6 +74,20 @@ async function run() {
       );
       // sending the document after update
       res.send(updatedStock.value);
+    });
+
+    // delete product by id
+    app.delete("/products/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await products.deleteOne(query);
+      if (result.deletedCount === 1) {
+        res.send("delete success");
+        console.log("Successfully deleted one document.");
+      } else {
+        console.log("No documents matched the query. Deleted 0 documents.");
+        res.send("delete failed");
+      }
     });
   } finally {
   }
