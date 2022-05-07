@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const port = process.env.PORT || 5000;
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
 const app = express();
 
@@ -23,19 +23,48 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     await client.connect();
-    const featuredProductsCollection = client
-      .db("tollyjoyInventory")
-      .collection("featuredProducts");
+    const products = client.db("tollyjoyInventory").collection("inventory");
 
     app.get("/featuredProducts", async (req, res) => {
-      const query = {};
-      const cursor = featuredProductsCollection.find(query);
+      const query = { featured: true };
+      const cursor = products.find(query);
       const featuredProducts = await cursor.toArray();
       console.log(featuredProducts);
       res.send(featuredProducts);
     });
-    // since this method returns the matched document, not a cursor, print it directly
-    // console.log(featuredProducts);
+
+    // Get Product by id
+    app.get("/inventory/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const product = await products.findOne(query);
+      res.send(product);
+    });
+
+    // reduce stock by one
+    app.put("/inventory/:id", async (req, res) => {
+      const id = req.params.id;
+      // const updatedStock = await products.findOneAndUpdate(
+      //   { _id: ObjectId(id) },
+      //   {
+      //     $inc: { quantity: -1 },
+      //   },
+      //   {
+      //     returnDocument: "after",
+      //   }
+      // );
+
+      const updatedStock = await products.findOneAndUpdate(
+        { _id: ObjectId(id) },
+        { $inc: { quantity: -1 } },
+        {
+          returnDocument: "after",
+        }
+      );
+      // sending the document after update
+      console.log(updatedStock.value);
+      res.send(updatedStock.value);
+    });
   } finally {
   }
 }
