@@ -44,16 +44,6 @@ async function run() {
     // reduce stock by one
     app.put("/inventory/:id", async (req, res) => {
       const id = req.params.id;
-      // const updatedStock = await products.findOneAndUpdate(
-      //   { _id: ObjectId(id) },
-      //   {
-      //     $inc: { quantity: -1 },
-      //   },
-      //   {
-      //     returnDocument: "after",
-      //   }
-      // );
-
       const updatedStock = await products.findOneAndUpdate(
         { _id: ObjectId(id) },
         { $inc: { quantity: -1 } },
@@ -62,7 +52,20 @@ async function run() {
         }
       );
       // sending the document after update
-      console.log(updatedStock.value);
+      res.send(updatedStock.value);
+    });
+
+    app.put("/restock/:id", async (req, res) => {
+      const quantity = req.body.quantity;
+      const id = req.params.id;
+      const updatedStock = await products.findOneAndUpdate(
+        { _id: ObjectId(id) },
+        { $inc: { quantity: quantity } },
+        {
+          returnDocument: "after",
+        }
+      );
+      // sending the document after update
       res.send(updatedStock.value);
     });
   } finally {
