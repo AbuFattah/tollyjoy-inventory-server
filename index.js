@@ -31,13 +31,22 @@ async function run() {
       const fetchedProducts = await cursor.toArray();
       res.send(fetchedProducts);
     });
-
+    // get featured products
     app.get("/featuredProducts", async (req, res) => {
-      const query = { featured: true };
-      const cursor = products.find(query);
+      // const query = { featured: true };
+      const cursor = products.find({}).limit(6);
       const featuredProducts = await cursor.toArray();
       console.log(featuredProducts);
       res.send(featuredProducts);
+    });
+
+    // Get my products
+    app.get("/products/:email", async (req, res) => {
+      const { email } = req.params;
+      // console.log(req.params);
+      const cursor = products.find({ email });
+      const fetchedProducts = await cursor.toArray();
+      res.send(fetchedProducts);
     });
 
     // Get Product by id
@@ -88,6 +97,16 @@ async function run() {
         console.log("No documents matched the query. Deleted 0 documents.");
         res.send("delete failed");
       }
+    });
+
+    // Add new inventory item
+    app.post("/inventories/add", async (req, res) => {
+      // const { itemName, price, supplier, quantity, email, imageUrl } = req.body;
+      const doc = req.body;
+      console.log(req.body);
+      const result = await products.insertOne(doc);
+      console.log(`A document was inserted with the _id: ${result.insertedId}`);
+      res.send(`A document was inserted with the _id: ${result.insertedId}`);
     });
   } finally {
   }
