@@ -9,6 +9,28 @@ const app = express();
 // middleware
 app.use(cors());
 app.use(express.json());
+// verify token middleware
+function verifyJWT(req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    res.status(401).send({ message: "Unauthorized access" });
+    return;
+  }
+
+  const token = authHeader.split(" ")[1];
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+    if (err) {
+      res.status(403).send({ message: "forbidden access" });
+      return;
+      // make sure to return on error since we don't want to continue anymore'
+    }
+
+    req.decoded = decoded;
+  });
+  // console.log("inside verifyJWT", authHeader);
+
+  next();
+}
 
 app.get("/", (req, res) => {
   res.send("Server running");
@@ -41,10 +63,15 @@ async function run() {
       res.send(featuredProducts);
     });
 
+    // ? USE verifyJWT middleware
     // Get my products
-    app.get("/products/:email", async (req, res) => {
+    app.get("/products/:email", verifyJWT, async (req, res) => {
       const { email } = req.params;
       // console.log(req.params);
+      if (email !== req.decoded.email) {
+        res.status(403).send({ message: "Forbidden access" });
+        return;
+      }
       const cursor = products.find({ email });
       const fetchedProducts = await cursor.toArray();
       res.send(fetchedProducts);
