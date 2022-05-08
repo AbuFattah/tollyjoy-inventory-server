@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const port = process.env.PORT || 5000;
+const jwt = require("jsonwebtoken");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
 const app = express();
@@ -71,6 +72,7 @@ async function run() {
       res.send(updatedStock.value);
     });
 
+    // update stock
     app.put("/restock/:id", async (req, res) => {
       const quantity = req.body.quantity;
       const id = req.params.id;
@@ -107,6 +109,16 @@ async function run() {
       const result = await products.insertOne(doc);
       console.log(`A document was inserted with the _id: ${result.insertedId}`);
       res.send(`A document was inserted with the _id: ${result.insertedId}`);
+    });
+
+    // CREATE TOKEN
+    app.post("/createToken", (req, res) => {
+      const payload = req.body;
+      const accessToken = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn: "1d",
+      });
+      console.log(accessToken);
+      res.send({ accessToken });
     });
   } finally {
   }
