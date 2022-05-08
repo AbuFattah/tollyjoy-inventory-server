@@ -13,23 +13,20 @@ app.use(express.json());
 function verifyJWT(req, res, next) {
   const authHeader = req.headers.authorization;
   if (!authHeader) {
-    res.status(401).send({ message: "Unauthorized access" });
-    return;
+    return res.status(401).send({ message: "Unauthorized access" });
   }
 
   const token = authHeader.split(" ")[1];
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
     if (err) {
-      res.status(403).send({ message: "forbidden access" });
-      return;
+      return res.status(403).send({ message: "forbidden access" });
       // make sure to return on error since we don't want to continue anymore'
     }
 
     req.decoded = decoded;
+    next();
   });
   // console.log("inside verifyJWT", authHeader);
-
-  next();
 }
 
 app.get("/", (req, res) => {
@@ -68,9 +65,9 @@ async function run() {
     app.get("/products/:email", verifyJWT, async (req, res) => {
       const { email } = req.params;
       // console.log(req.params);
-      if (email !== req.decoded.email) {
-        res.status(403).send({ message: "Forbidden access" });
-        return;
+      // Forbid access if request email and access token payload email dont match
+      if (email !== req.decoded?.email) {
+        return res.status(403).send({ message: "Forbidden access" });
       }
       const cursor = products.find({ email });
       const fetchedProducts = await cursor.toArray();
