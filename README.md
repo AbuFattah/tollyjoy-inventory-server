@@ -4,7 +4,7 @@
 
 ---
 
-## Live Site: [Thunderbolt](https://thunderbolt-9bce9.web.app/)
+## Live Site: [Tollyjoy Inventory](https://thunderbolt-9bce9.web.app/)
 
 <br>
 
